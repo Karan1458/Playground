@@ -1,7 +1,10 @@
 <?php 
-	$fn = "test.php";
-	$testfile = fopen($fn,'r') or die('unable to open file....'); 
-	$content = fread($testfile,filesize($fn));
+	$fn = 'test.php';
+	$content = '';
+	$testfile = fopen($fn,'r') or die('unable to open file....');
+	if(filesize($fn) !== 0){
+		$content = fread($testfile,filesize($fn));
+	}
 	fclose($testfile);
 ?>
 <!DOCTYPE html>
@@ -29,7 +32,10 @@
 				cursor: help;
 			}
 			
-			html,body { min-height:100%;}
+			html,body { 
+				margin:0;
+				min-height:100%;
+			}
 			body {
 				background: rgba(241,248,253,1);
 				background: -moz-linear-gradient(top, rgba(241,248,253,1) 0%, rgba(173,207,245,1) 100%);
@@ -39,34 +45,52 @@
 				background: -ms-linear-gradient(top, rgba(241,248,253,1) 0%, rgba(173,207,245,1) 100%);
 				background: linear-gradient(to bottom, rgba(241,248,253,1) 0%, rgba(173,207,245,1) 100%);
 				filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f8fd', endColorstr='#adcff5', GradientType=0 );
+				transition: margin-right .5s;
+				padding: 8px;
+				height: 100vh;
+    			box-sizing: border-box;
 			}
 			#content { 
 				display: grid;
     			grid-template-columns: 1fr 1fr;
     			grid-auto-rows: 1fr;
-				min-height: 100%;
 			}
-			#header {height:auto;}
+			#header {
+				height:auto;
+				display: table;
+			}
 			#footer {
-			         text-align:right;
-			       	height: 30px; 
-					 }
+				text-align: right;
+				height: 30px;
+				position: absolute;
+				bottom: 60px;
+				left: 0;
+				right: 0;
+				color: #818181;
+				padding: 10px;
+			}
 			.CodeMirror-scroll {
 				overflow-x : auto;
 				overflow-y : hidden;
 			}
 			.CodeMirror {
 				border:1px solid #eee;
-				height: calc(100vh - 160px);
-				height: -moz-calc(100vh-160px);
-				height: -webkit-calc(100vh-160px);
-				height: -o-calc(100vh-160px);
+				height: calc(100vh - 70px);
+				height: -moz-calc(100vh-70px);
+				height: -webkit-calc(100vh-70px);
+				height: -o-calc(100vh-70px);
 				/*padding-top:10px;*/
 				border-top-left-radius: 5px ;
-				border-bottom-left-radius: 5px ;
-			}
+				border-bottom-left-radius: 5px ;7		}
 			
-			#textpart input[type=button] {
+			
+			.action-row {
+    			display: table-cell;    
+    			text-align: right;
+				width:100%;
+				vertical-align: middle;
+			}
+			.action-row input[type=button] {
 				cursor: pointer;
 				color:white;
 				border-radius:4px;
@@ -75,9 +99,15 @@
 				border:1px solid transparent;
 				
 			}
-			#textpart input[name=save] {background: rgb(28,184,65);}
-			#textpart input[name=run] { background : rgb(66,184,221);}
-			#textpart input[name=clear] {background :rgb(223,117,20);}
+			.action-row input[name=save] {background: rgb(28,184,65);}
+			.action-row input[name=run] { background : rgb(66,184,221);}
+			.action-row input[name=clear] {background :rgb(223,117,20);}
+			.action-row button.btn-info {
+				padding: 5px 10px;
+				border: 1px solid #d7d4f0;
+				background-color: #fff;
+				border-radius: 3px;
+			}
 			#site-name {
 				font-family: sans-serif;
 			    font-size: 28px;
@@ -86,11 +116,57 @@
 			    color: #444;
 			}
 			#resultpart iframe {
-			    height: calc(100vh - 160px);
+			    height: calc(100vh - 70px);
 			    border: none;
 			    background: #fff;
 			    border-top-right-radius: 5px;
 			    border-bottom-right-radius: 5px;
+			}
+			/** Side Nav */
+			.sidenav {
+				height: 100%;
+				width: 0;
+				position: fixed;
+				z-index: 9999;
+				top: 0;
+				right: 0;
+				background-color: #111;
+				overflow-x: hidden;
+				transition: 0.5s;
+				padding-top: 60px;
+			}
+			.sidenav.active {
+				width: 250px;
+			}
+
+			.sidenav a {
+				padding: 8px 8px 8px 32px;
+				text-decoration: none;
+				font-size: 25px;
+				color: #818181;
+				display: block;
+				transition: 0.3s;
+			}
+
+			.sidenav a:hover {
+				color: #f1f1f1;
+			}
+			.sidenav p {
+				padding: 10px;
+				color:#818181;
+			}
+
+			.sidenav .closebtn {
+				position: absolute;
+				top: 0;
+				right: 10px;
+				font-size: 36px;
+				margin-left: 50px;
+			}
+
+			@media screen and (max-height: 450px) {
+				.sidenav {padding-top: 15px;}
+				.sidenav a {font-size: 18px;}
 			}
 		</style>
 
@@ -98,26 +174,35 @@
 	</head>
 	<body>
     	<div id="header">
-    		<div id="logo"><h1 id="site-name" title="For shortcut,Press ALT + s to save and ALT + r to run,f11 for fullscreen mode">Playground </h1></div>
+    		<div id="logo">
+				<h1 id="site-name" title="For shortcut,Press ALT + s to save and ALT + r to run,f11 for fullscreen mode">Playground </h1>
+			</div>
+			<div class="action-row">
+				<!-- <input type="button" value="Save" name='save' accesskey="s" /> -->
+				<input type="button" value="Run" name='run' accesskey="r" />
+				<input type="button" value="Clear" name='clear' accesskey="c" />
+				<button class="btn-info" onclick="toggleNav()" >&#9776;</button>
+			</div>
  		</div>
+		 <div id="mySidenav" class="sidenav">
+			<a href="javascript:void(0)" class="closebtn" onclick="toggleNav()">&times;</a>
+			<p> Thank you for using playground. </p>
+			<div id="footer">
+				<b><?php if(PHP_VERSION) {echo "PHP Version : ".PHP_VERSION;} 
+						else {echo "PHP Not Installed."; }
+				?><br /> Code Mirror Version : 5.48 </b>
+			</div>
+		</div>
  		<div id="content">
  			<div id="textpart" class="one-half">
 				<textarea rows="50" cols="120" name="code" id="code"><?php echo $content;  ?></textarea>
-	    		<div class="action-row">
-	    			<!-- <input type="button" value="Save" name='save' accesskey="s" /> -->
-					<input type="button" value="Run" name='run' accesskey="r" />
-					<input type="button" value="Clear" name='clear' accesskey="c" />
-				</div>
+	    		
 			</div>
 			<div id="resultpart" class="one-half">
 				<iframe src="./test.php" width="100%" height="100%"></iframe>
 			</div>
      	</div>
-		<div id="footer">
-	  		<b><?php if(PHP_VERSION) {echo "PHP Version : ".PHP_VERSION;} 
-	  				else {echo "PHP Not Installed."; }
-			?><br /> Code Mirror Version : 5.48 </b>
-		</div>
+		
 
 		<!-- All scripts at the bottom --> 
 		<script src="codemirror/lib/codemirror.js"></script>
@@ -137,7 +222,27 @@
 		<script src="codemirror/addon/fold/xml-fold.js"></script>
 		<script src="codemirror/addon/edit/matchtags.js"></script>
 		<script type="text/javascript">
+			function debounce(func, wait, immediate) {
+				var timeout;
+				return function() {
+					var context = this, args = arguments;
+					var later = function() {
+						timeout = null;
+						if (!immediate) func.apply(context, args);
+					};
+					var callNow = immediate && !timeout;
+					clearTimeout(timeout);
+					timeout = setTimeout(later, wait);
+					if (callNow) func.apply(context, args);
+				};
+			};
 			jQuery('document').ready(function($) {
+
+				//On change Update the outupt 
+				editor.on('change', debounce(function() {
+					console.log('Saving now');
+					$('.action-row input[name=run]').trigger('click');
+				}, 1000));
 
 				$('.action-row').on('click', 'input', function(ev){
 					var action = $(this).attr('name');
@@ -201,6 +306,21 @@
 				indentWithTabs: true
 			});
 		</script>
-
+		<script>
+			function toggleNav() {
+				let target = document.getElementById('mySidenav');
+				if(target.classList.contains('active')) {
+					target.classList.toggle('active');
+					document.body.style.marginRight = 'initial';
+					document.body.style.backgroundColor = "white";
+				} else {
+					target.classList.toggle('active');
+					document.body.style.marginRight = '250px';
+					document.body.style.backgroundColor = "rgba(0,0,0,0.4)";
+				}
+				
+				
+			}
+		</script>
 	</body>
 </html>
