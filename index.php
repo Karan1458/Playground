@@ -97,11 +97,16 @@
 				padding: 5px 20px;
 				font-size:16px;
 				border:1px solid transparent;
+				outline: none;
 				
 			}
 			.action-row input[name=save] {background: rgb(28,184,65);}
 			.action-row input[name=run] { background : rgb(66,184,221);}
 			.action-row input[name=clear] {background :rgb(223,117,20);}
+			.action-row input[name=autoplay] { background-color: #555; }
+			.action-row input[name=autoplay].active {
+				background-color: #0c1021;
+			}
 			.action-row button.btn-info {
 				padding: 5px 10px;
 				border: 1px solid #d7d4f0;
@@ -163,6 +168,47 @@
 				font-size: 36px;
 				margin-left: 50px;
 			}
+			#snackbar {
+			  visibility: hidden;
+			  min-width: 250px;
+			  margin-left: -125px;
+			  background-color: #333;
+			  color: #fff;
+			  text-align: center;
+			  border-radius: 2px;
+			  padding: 16px;
+			  position: fixed;
+			  z-index: 1;
+			  left: 50%;
+			  bottom: 30px;
+			  font-size: 17px;
+			}
+
+			#snackbar.show {
+			  visibility: visible;
+			  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+			  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+			}
+
+			@-webkit-keyframes fadein {
+			  from {bottom: 0; opacity: 0;} 
+			  to {bottom: 30px; opacity: 1;}
+			}
+
+			@keyframes fadein {
+			  from {bottom: 0; opacity: 0;}
+			  to {bottom: 30px; opacity: 1;}
+			}
+
+			@-webkit-keyframes fadeout {
+			  from {bottom: 30px; opacity: 1;} 
+			  to {bottom: 0; opacity: 0;}
+			}
+
+			@keyframes fadeout {
+			  from {bottom: 30px; opacity: 1;}
+			  to {bottom: 0; opacity: 0;}
+			}
 
 			@media screen and (max-height: 450px) {
 				.sidenav {padding-top: 15px;}
@@ -179,6 +225,7 @@
 			</div>
 			<div class="action-row">
 				<!-- <input type="button" value="Save" name='save' accesskey="s" /> -->
+				<input type="button" value="Autoplay" name="autoplay" accesskey="a" />
 				<input type="button" value="Run" name='run' accesskey="r" />
 				<input type="button" value="Clear" name='clear' accesskey="c" />
 				<button class="btn-info" onclick="toggleNav()" >&#9776;</button>
@@ -201,12 +248,13 @@
 			<div id="resultpart" class="one-half">
 				<iframe src="./test.php" width="100%" height="100%"></iframe>
 			</div>
+			<div id="snackbar"></div>
      	</div>
 		
 
 		<!-- All scripts at the bottom --> 
 		<script src="codemirror/lib/codemirror.js"></script>
-		<script src="jquery.min.js"></script>
+		<!-- <script src="jquery.min.js"></script> -->
 		<script src="codemirror/mode/xml/xml.js"></script>
 		<script src="codemirror/mode/javascript/javascript.js"></script>
 		<script src="codemirror/mode/css/css.js"></script>
@@ -236,47 +284,62 @@
 					if (callNow) func.apply(context, args);
 				};
 			};
-			jQuery('document').ready(function($) {
 
-				//On change Update the outupt 
-				editor.on('change', debounce(function() {
-					console.log('Saving now');
-					$('.action-row input[name=run]').trigger('click');
-				}, 1000));
+			document.addEventListener("DOMContentLoaded", function() {
+				var autoPlayBtn = document.querySelector('.action-row input[name=autoplay]'),
+					saveBtn = document.querySelector('.action-row input[name=run]'),
+					runBtn = document.querySelector('.action-row input[name=run]'),
+					clearBtn = document.querySelector('.action-row input[name=clear]');
 
-				$('.action-row').on('click', 'input', function(ev){
-					var action = $(this).attr('name');
-					if(action === 'save') {
+				  	//On change Update the output 
+					editor.on('change', debounce(function() {
+						var isAutoplay = autoPlayBtn.classList.contains('active');
+						if(isAutoplay) { runBtn.click(); }
+					}, 1000));
 
-						$.post('inc/save.php', { content: editor.getValue() }, function(res) {
+					//Save Button Clicked
+					saveBtn.addEventListener('click', function() {
+						post('inc/save.php', { content: editor.getValue() }, function(res) {
+							snackbar('Code has been saved.');
+						});
+					});
+
+					//Run Code button
+					runBtn.addEventListener('click', function() {
+						post('inc/save.php', { content: editor.getValue() }, function(res) {
 							console.log(res);
+							if(res.status === 'success') {
+								var outputFrame = document.querySelector('#resultpart iframe');
+								outputFrame.contentWindow.location.reload();
+								snackbar('Code has been updated.');	
+							} else {
+								snackbar('Something went wrong while update.');
+							}
 						});
+					});
 
-						//$('#textpart').attr('action','<?php echo $_SERVER["PHP_SELF"]; ?>');
-						//$('#textpart').attr('target','_parent');
-						//$('#textpart').submit();
-					} else if ( action === 'run') {
+					// Clear Text Button
+					clearBtn.addEventListener('click', function() {
+						document.querySelector('textarea[name=code]').innerHTML = '';
 
-						// Save text
-						$.post('inc/save.php', { content: editor.getValue() }, function(res) {
-							// Run code
-							$('#resultpart iframe').attr( 'src', function ( i, val ) { return val; });
-						});
-
-
-						//$('#textpart').attr('action','test.php');
-						//$('#textpart').attr('target','_blank');
-						//$('#textpart').submit();
-					} else if( action === 'clear') {
-						$('textarea[name=code]').html('');
 						if(editor) {
 							editor.setValue('');
 							//editor.clearHistory();
 						}
+						snackbar('Code has been cleared.');
 						//window.location.reload();
-					}
-				});
+					});
+
+					//Autopay toggle Button
+					autoPlayBtn.addEventListener('click', function() {
+						this.classList.toggle('active');
+						if(this.classList.contains('active'))
+							snackbar('Autoplay has been enabled.');
+						else 
+							snackbar('Autoplay has been disabled.');
+					})
 			});
+			
 		 
 		</script>
 		<script>
@@ -308,19 +371,63 @@
 		</script>
 		<script>
 			function toggleNav() {
-				let target = document.getElementById('mySidenav');
+				let target = document.getElementById('mySidenav'),
+					bodyTag = document.body;
 				if(target.classList.contains('active')) {
 					target.classList.toggle('active');
-					document.body.style.marginRight = 'initial';
-					document.body.style.backgroundColor = "white";
+					bodyTag.style.marginRight = 'initial';
+					bodyTag.body.style.backgroundColor = "white";
 				} else {
 					target.classList.toggle('active');
-					document.body.style.marginRight = '250px';
-					document.body.style.backgroundColor = "rgba(0,0,0,0.4)";
+					bodyTag.style.marginRight = '250px';
+					bodyTag.style.backgroundColor = "rgba(0,0,0,0.4)";
+				}
+			}
+			function snackbar(message) {
+  				var x = document.getElementById("snackbar");
+  				x.innerText = message
+  				x.className = "show";
+  				setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+			}
+
+			function post(url, data, callback, fallback = false) {
+				if(fallback) {
+					// XHR 
+					var xhr = new XMLHttpRequest();
+					xhr.open("POST", url, true);
+					xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+					xhr.setRequestHeader("cache-control", "no-cache");
+					const urlParams = new URLSearchParams(Object.entries(data));
+					xhr.send(urlParams.toString());
+					xhr.onload = callback;
+				} else {
+					//Fetch API
+					fetch(url, { 
+						method: "POST", 
+						headers: {'Content-Type': "application/x-www-form-urlencoded; charset=UTF-8"},
+						mode: 'cors',
+	    				cache: 'default',
+						body: serialize(data)
+					}).then( response => response.json()).then(callback);	
 				}
 				
 				
 			}
+			function serialize(obj, prefix) {
+			  var str = [], p;
+			  for (p in obj) {
+			    if (obj.hasOwnProperty(p)) {
+			      var k = prefix ? prefix + "[" + p + "]" : p,
+			        v = obj[p];
+			      str.push((v !== null && typeof v === "object") ?
+			        serialize(v, k) :
+			        encodeURIComponent(k) + "=" + encodeURIComponent(v));
+			    }
+			  }
+			  return str.join("&");
+			}
+			function jsonToURI(json){ return encodeURIComponent(JSON.stringify(json)); }
+			function uriToJSON(urijson){ return JSON.parse(decodeURIComponent(urijson)); }
 		</script>
 	</body>
 </html>
