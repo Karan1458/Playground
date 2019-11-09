@@ -1,18 +1,23 @@
 <?php
-	error_reporting(E_ALL);
-	$fn = "../test.php";
-	
+	error_reporting(0);	
+	include_once 'classes/SqlLiteDB.php';
+
 	$response = array(
 		'status' => 'error'
 	);
 
-	if (isset($_POST['content'])) {
+	if (isset($_POST['title'], $_POST['content'])) {
+		$db = new SqlLiteDB();
+		
+		$ret = $db->exec($sql);
 
-	    $content = $_POST['content'];
-	    $fp = fopen($fn,"w") or die ("Error opening file in write mode!");
-	    fputs($fp,$content);
-	    fclose($fp) or die ("Error closing file!");
-	    $response['status'] = 'success';
+		if(!$ret) {
+	   		$response['status'] = 'error';
+	      	$response['message'] = $db->lastErrorMsg();
+	    } else {
+	    	$response['status'] = 'success';
+	    } 
+   		$db->close();
 	} 
 	header('Content-Type: application/json');
 	echo json_encode($response);
