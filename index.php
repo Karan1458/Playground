@@ -28,36 +28,38 @@
 		<link rel="stylesheet" type="text/css" href="css/style.css" />
 	</head>
 	<body>
-    	<div id="header">
-    		<div id="logo">
-				<h1 id="site-name" title="For shortcut,Press ALT + s to save and ALT + r to run,f11 for fullscreen mode">Playground </h1>
+		<div class="wrap">
+	    	<div id="header">
+	    		<div id="logo">
+					<h1 id="site-name" title="For shortcut,Press ALT + s to save and ALT + r to run,f11 for fullscreen mode">Playground </h1>
+				</div>
+				<div class="action-row">
+					<input type="button" value="Autoplay" name="autoplay" accesskey="a" />
+					<input type="button" value="Save" name='save' accesskey="s" />
+					<input type="button" value="Run" name='run' accesskey="r" />
+					<input type="button" value="Clear" name='clear' accesskey="c" />
+					<button class="btn-info" onclick="toggleNav()" >&#9776;</button>
+				</div>
+	 		</div>
+			 <div id="mySidenav" class="sidenav">
+				<a href="javascript:void(0)" class="closebtn" onclick="toggleNav()">&times;</a>
+				<p> Thank you for using playground. </p>
+				<div id="footer">
+					<b><?php if(PHP_VERSION) {echo "PHP Version : ".PHP_VERSION;} 
+							else {echo "PHP Not Installed."; }
+					?><br /> Code Mirror Version : 5.63.1 </b>
+				</div>
 			</div>
-			<div class="action-row">
-				<input type="button" value="Autoplay" name="autoplay" accesskey="a" />
-				<input type="button" value="Save" name='save' accesskey="s" />
-				<input type="button" value="Run" name='run' accesskey="r" />
-				<input type="button" value="Clear" name='clear' accesskey="c" />
-				<button class="btn-info" onclick="toggleNav()" >&#9776;</button>
-			</div>
- 		</div>
-		 <div id="mySidenav" class="sidenav">
-			<a href="javascript:void(0)" class="closebtn" onclick="toggleNav()">&times;</a>
-			<p> Thank you for using playground. </p>
-			<div id="footer">
-				<b><?php if(PHP_VERSION) {echo "PHP Version : ".PHP_VERSION;} 
-						else {echo "PHP Not Installed."; }
-				?><br /> Code Mirror Version : 5.48 </b>
-			</div>
-		</div>
- 		<div id="content">
- 			<div id="textpart" class="one-half">
-				<textarea rows="50" cols="120" name="code" id="code"><?php echo $content;  ?></textarea>
-			</div>
-			<div id="resultpart" class="one-half">
-				<iframe src="./test.php" width="100%" height="100%"></iframe>
-			</div>
-			<div id="snackbar"></div>
-     	</div>
+	 		<div id="content">
+	 			<div id="textpart" class="one-half">
+					<textarea rows="50" cols="120" name="code" id="code"><?php echo $content;  ?></textarea>
+				</div>
+				<div id="resultpart" class="one-half">
+					<iframe src="./test.php" width="100%" height="100%"></iframe>
+				</div>
+				<div id="snackbar"></div>
+	     	</div>
+	    </div> <!-- /.wrap -->
 		
 
 		<!-- All scripts at the bottom --> 
